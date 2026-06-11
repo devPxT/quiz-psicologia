@@ -1,0 +1,1514 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Quiz Interativo — Fundamentos Básicos das Grupoterapias</title>
+  <style>
+    :root {
+      --bg: #f6f7fb;
+      --card: #ffffff;
+      --text: #172033;
+      --muted: #5f6b7a;
+      --primary: #1f4e79;
+      --primary-dark: #15395a;
+      --ok: #157347;
+      --bad: #b42318;
+      --line: #d9e0ea;
+      --soft: #eef4fb;
+      --shadow: 0 10px 30px rgba(17, 32, 51, .10);
+      --radius: 18px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+      background: radial-gradient(circle at top left, #e8f1fb, transparent 30rem), var(--bg);
+      line-height: 1.5;
+    }
+    .wrap {
+      width: min(980px, calc(100% - 28px));
+      margin: 0 auto;
+      padding: 28px 0 40px;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+    .brand {
+      font-weight: 800;
+      color: var(--primary);
+      letter-spacing: -.02em;
+      font-size: clamp(1.05rem, 4vw, 1.5rem);
+    }
+    .home {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 700;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 10px 14px;
+      background: #fff;
+      white-space: nowrap;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid rgba(217, 224, 234, .9);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: clamp(18px, 4vw, 30px);
+    }
+    h1, h2 {
+      margin: 0 0 12px;
+      letter-spacing: -.035em;
+      line-height: 1.15;
+    }
+    h1 { font-size: clamp(1.7rem, 7vw, 2.7rem); }
+    h2 { font-size: clamp(1.3rem, 5vw, 2rem); }
+    p { margin: 0 0 12px; color: var(--muted); }
+    .chapters {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin: 18px 0;
+    }
+    label.chapter {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border: 1px solid var(--line);
+      background: #fbfcfe;
+      border-radius: 14px;
+      padding: 13px 14px;
+      font-weight: 700;
+      cursor: pointer;
+      min-height: 54px;
+    }
+    label.chapter input { width: 20px; height: 20px; accent-color: var(--primary); }
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 14px;
+    }
+    button, .button {
+      appearance: none;
+      border: 0;
+      border-radius: 14px;
+      padding: 13px 18px;
+      font-size: 1rem;
+      font-weight: 800;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 48px;
+    }
+    .primary { background: var(--primary); color: white; }
+    .primary:hover { background: var(--primary-dark); }
+    .secondary { background: var(--soft); color: var(--primary); border: 1px solid var(--line); }
+    .danger { background: #fff1f0; color: var(--bad); border: 1px solid #ffd0cc; }
+    .meta {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+      color: var(--muted);
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+    .progress {
+      height: 10px;
+      background: #e8edf4;
+      border-radius: 999px;
+      overflow: hidden;
+      margin: 16px 0 22px;
+    }
+    .bar { height: 100%; width: 0; background: var(--primary); transition: width .25s ease; }
+    .question {
+      font-size: clamp(1.15rem, 4.5vw, 1.55rem);
+      font-weight: 850;
+      letter-spacing: -.02em;
+      margin: 0 0 18px;
+    }
+    .options {
+      display: grid;
+      gap: 10px;
+    }
+    .opt {
+      width: 100%;
+      justify-content: flex-start;
+      text-align: left;
+      background: #fff;
+      color: var(--text);
+      border: 1px solid var(--line);
+      padding: 14px 15px;
+      font-weight: 650;
+      line-height: 1.35;
+      white-space: normal;
+    }
+    .opt:hover:not(:disabled) { border-color: var(--primary); background: #f7fbff; }
+    .opt:disabled { cursor: default; opacity: 1; }
+    .opt.correct { border-color: #70c79d; background: #ecfdf3; color: #075e33; }
+    .opt.wrong { border-color: #f3a39b; background: #fff1f0; color: #8f1d14; }
+    .feedback {
+      margin-top: 16px;
+      border-radius: 14px;
+      padding: 14px 15px;
+      border: 1px solid var(--line);
+      background: #fbfcfe;
+      display: none;
+    }
+    .feedback.ok { border-color: #98d9b8; background: #f0fff6; }
+    .feedback.bad { border-color: #ffc2bd; background: #fff6f5; }
+    .feedback strong { display: block; margin-bottom: 6px; }
+    .small {
+      font-size: .95rem;
+      color: var(--muted);
+    }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: #fff;
+      color: var(--muted);
+      font-weight: 700;
+      font-size: .92rem;
+    }
+    .hidden { display: none !important; }
+    .resultScore {
+      font-size: clamp(2.5rem, 16vw, 5rem);
+      font-weight: 900;
+      color: var(--primary);
+      letter-spacing: -.06em;
+      line-height: 1;
+      margin: 10px 0;
+    }
+    .review {
+      display: grid;
+      gap: 12px;
+      margin-top: 18px;
+    }
+    .reviewItem {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px;
+      background: #fbfcfe;
+    }
+    .reviewItem b { color: var(--primary); }
+    .note {
+      background: #fff8e6;
+      border: 1px solid #f5df9e;
+      border-radius: 14px;
+      padding: 12px 14px;
+      color: #715100;
+      margin-top: 12px;
+    }
+    @media (max-width: 640px) {
+      .wrap { width: min(100% - 20px, 980px); padding-top: 14px; }
+      header { align-items: flex-start; flex-direction: column; }
+      .home { width: 100%; justify-content: center; }
+      .chapters { grid-template-columns: 1fr; }
+      .actions { flex-direction: column; }
+      button, .button { width: 100%; }
+      .card { border-radius: 16px; }
+      .opt { padding: 15px 14px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="brand">Quiz — Fundamentos Básicos das Grupoterapias</div>
+      <a class="home" href="index.html">← Home</a>
+    </header>
+
+    <main id="start" class="card">
+      <h1>Escolha os capítulos e comece o quiz</h1>
+      <p>Este quiz usa apenas os capítulos 5, 6, 9, 10, 11, 12 e 13 do PDF <strong>Fundamentos Básicos das Grupoterapias — 2ª ed.</strong></p>
+      <p>Ao iniciar, o sistema sorteia <strong>10 questões</strong> dentro do banco de perguntas dos capítulos selecionados. Por padrão, todos os capítulos vêm marcados. Cada questão tem 5 alternativas objetivas, uma correta e explicação imediata.</p>
+      <div class="note">Dica: para estudar um capítulo específico, desmarque os demais antes de começar.</div>
+
+      <div class="chapters" id="chapterList"></div>
+
+      <div class="actions">
+        <button class="secondary" id="selectAll" type="button">Selecionar todos</button>
+        <button class="secondary" id="clearAll" type="button">Limpar seleção</button>
+        <button class="primary" id="startBtn" type="button">Começar quiz com 10 questões</button>
+      </div>
+      <p id="startMsg" class="small" style="margin-top:12px;"></p>
+    </main>
+
+    <section id="quiz" class="card hidden">
+      <div class="meta">
+        <span id="counter">Questão 1/10</span>
+        <span id="score">Acertos: 0</span>
+        <span id="chapterBadge" class="pill">Capítulo</span>
+      </div>
+      <div class="progress"><div class="bar" id="bar"></div></div>
+      <div id="question" class="question"></div>
+      <div id="options" class="options"></div>
+      <div id="feedback" class="feedback"></div>
+      <div class="actions">
+        <button class="primary hidden" id="nextBtn" type="button">Próxima questão</button>
+        <button class="danger" id="quitBtn" type="button">Voltar ao início</button>
+      </div>
+    </section>
+
+    <section id="result" class="card hidden">
+      <h2>Resultado final</h2>
+      <p>Você respondeu 10 questões sorteadas conforme os capítulos selecionados.</p>
+      <div class="resultScore" id="finalScore">0/10</div>
+      <p id="finalMsg"></p>
+      <div class="actions">
+        <button class="primary" id="restartSame" type="button">Sortear nova prova com os mesmos capítulos</button>
+        <button class="secondary" id="restartChoose" type="button">Escolher capítulos novamente</button>
+      </div>
+      <div class="review" id="review"></div>
+    </section>
+  </div>
+
+<script>
+const QUESTION_BANK = [
+  {
+    "chapter": 5,
+    "question": "Segundo a conceituação do capítulo 5, por que o estudo da psicologia grupal é central para compreender o ser humano?",
+    "options": [
+      "Porque o indivíduo é constituído em constante interação com grupos, subgrupos, comunidades e sociedade.",
+      "Porque o grupo elimina a importância da identidade individual.",
+      "Porque os fenômenos individuais independem da vida social.",
+      "Porque apenas grupos terapêuticos produzem vínculos humanos significativos.",
+      "Porque a vida psíquica se explica exclusivamente por fatores biológicos."
+    ],
+    "answer": "Porque o indivíduo é constituído em constante interação com grupos, subgrupos, comunidades e sociedade.",
+    "explanation": "O capítulo 5 apresenta o ser humano como gregário e situado numa dialética permanente entre identidade individual e grupal; por isso, grupos não são acessórios, mas parte constitutiva da vida psíquica e social."
+  },
+  {
+    "chapter": 5,
+    "question": "Qual relação o capítulo 5 propõe entre indivíduo e grupo?",
+    "options": [
+      "Há uma interação dialética: o indivíduo influencia o grupo e é influenciado pela totalidade grupal.",
+      "O grupo é apenas uma soma matemática de indivíduos isolados.",
+      "O indivíduo desaparece completamente quando entra em um grupo.",
+      "O grupo só existe quando há objetivo terapêutico formal.",
+      "A influência grupal ocorre apenas em instituições fechadas."
+    ],
+    "answer": "Há uma interação dialética: o indivíduo influencia o grupo e é influenciado pela totalidade grupal.",
+    "explanation": "A ideia central é que a totalidade grupal possui dinâmica própria, mas não anula as singularidades; indivíduo e grupo se influenciam continuamente."
+  },
+  {
+    "chapter": 5,
+    "question": "Na passagem de agrupamento para grupo, qual é o requisito mais importante?",
+    "options": [
+      "A existência de vínculos, comunicação e interação em torno de algum campo comum.",
+      "A presença obrigatória de um terapeuta psicanalítico.",
+      "A reunião casual de muitas pessoas no mesmo espaço físico.",
+      "A homogeneidade absoluta de idade, classe e sintomas.",
+      "A ausência de papéis diferenciados entre os participantes."
+    ],
+    "answer": "A existência de vínculos, comunicação e interação em torno de algum campo comum.",
+    "explanation": "O capítulo diferencia mera reunião de pessoas de grupo propriamente dito: para haver grupo, precisam surgir vínculos, comunicações, interações e uma configuração comum."
+  },
+  {
+    "chapter": 5,
+    "question": "Qual exemplo corresponde melhor a um mero agrupamento, e não a um grupo psicológico estruturado?",
+    "options": [
+      "Pessoas esperando um ônibus sem vínculos ou tarefa comum compartilhada.",
+      "Uma equipe clínica que discute casos regularmente.",
+      "Uma família com papéis e história compartilhada.",
+      "Um grupo terapêutico com enquadre definido.",
+      "Uma classe escolar que interage ao longo do semestre."
+    ],
+    "answer": "Pessoas esperando um ônibus sem vínculos ou tarefa comum compartilhada.",
+    "explanation": "Um agrupamento pode reunir pessoas no mesmo lugar, mas sem vínculo, interação significativa ou tarefa comum; isso o distingue de um grupo."
+  },
+  {
+    "chapter": 5,
+    "question": "Quando o capítulo 5 afirma que um grupo não é apenas soma de pessoas, o que isso significa?",
+    "options": [
+      "Que o campo grupal produz fenômenos próprios, diferentes dos fenômenos individuais isolados.",
+      "Que a individualidade deixa de existir no contexto grupal.",
+      "Que todo grupo é necessariamente patológico.",
+      "Que apenas o líder possui influência real sobre os demais.",
+      "Que a comunicação verbal é dispensável em qualquer grupo."
+    ],
+    "answer": "Que o campo grupal produz fenômenos próprios, diferentes dos fenômenos individuais isolados.",
+    "explanation": "O grupo desenvolve uma configuração e uma dinâmica próprias, com fenômenos emergentes que não podem ser reduzidos à soma dos integrantes."
+  },
+  {
+    "chapter": 5,
+    "question": "Qual sequência expressa adequadamente a passagem conceitual apresentada no capítulo 5?",
+    "options": [
+      "Indivíduos formam grupos; grupos articulados formam comunidades; comunidades interativas configuram uma sociedade.",
+      "Sociedades formam indivíduos isolados; indivíduos anulam grupos; grupos impedem comunidades.",
+      "Famílias formam instituições; instituições substituem comunidades; comunidades eliminam sociedades.",
+      "Terapias formam grupos; grupos substituem indivíduos; indivíduos substituem vínculos.",
+      "Subgrupos surgem apenas depois da sociedade e não pertencem ao campo grupal."
+    ],
+    "answer": "Indivíduos formam grupos; grupos articulados formam comunidades; comunidades interativas configuram uma sociedade.",
+    "explanation": "O capítulo apresenta uma cadeia de organização social em que indivíduos, grupos, subgrupos, comunidades e sociedade se articulam."
+  },
+  {
+    "chapter": 5,
+    "question": "Qual é a função da identidade grupal na vida humana, conforme o capítulo 5?",
+    "options": [
+      "Ela participa da construção da identidade social sem excluir a busca de identidade individual.",
+      "Ela substitui inteiramente a identidade individual.",
+      "Ela ocorre apenas em grupos artificiais.",
+      "Ela só aparece quando há regressão patológica.",
+      "Ela impede qualquer diferenciação entre os membros."
+    ],
+    "answer": "Ela participa da construção da identidade social sem excluir a busca de identidade individual.",
+    "explanation": "O texto enfatiza a tensão criativa entre pertencimento e diferenciação: o sujeito precisa de identidade individual e também de inserção grupal/social."
+  },
+  {
+    "chapter": 5,
+    "question": "O que caracteriza a especificidade de um grupo em comparação com uma relação puramente dual?",
+    "options": [
+      "A presença de múltiplas interações simultâneas, subgrupos, papéis e fenômenos próprios do campo grupal.",
+      "A inexistência de transferência entre os participantes.",
+      "A obrigatoriedade de todos se comunicarem do mesmo modo.",
+      "A eliminação de ansiedades inconscientes.",
+      "A ausência de liderança ou de tarefas."
+    ],
+    "answer": "A presença de múltiplas interações simultâneas, subgrupos, papéis e fenômenos próprios do campo grupal.",
+    "explanation": "No grupo, as relações não se dão apenas em pares; surgem redes de interação, subgrupos, papéis, ressonâncias e movimentos próprios."
+  },
+  {
+    "chapter": 5,
+    "question": "Por que o conhecimento dos fenômenos grupais é útil além da psicoterapia?",
+    "options": [
+      "Porque os indivíduos vivem em famílias, escolas, instituições e comunidades onde fenômenos grupais se repetem.",
+      "Porque todo grupo social deve ser tratado como paciente clínico.",
+      "Porque a psicologia grupal só serve para hospitais psiquiátricos.",
+      "Porque a técnica grupal elimina conflitos institucionais automaticamente.",
+      "Porque a grupoterapia substitui todas as formas de educação e trabalho."
+    ],
+    "answer": "Porque os indivíduos vivem em famílias, escolas, instituições e comunidades onde fenômenos grupais se repetem.",
+    "explanation": "O capítulo amplia a importância dos grupos para a vida cotidiana, institucional, educativa, familiar e social."
+  },
+  {
+    "chapter": 5,
+    "question": "Qual afirmação expressa melhor a noção de totalidade grupal?",
+    "options": [
+      "O grupo forma uma configuração com propriedades próprias, que organiza e é organizada pelos membros.",
+      "A totalidade grupal é apenas a opinião da maioria.",
+      "A totalidade grupal é sinônimo de obediência ao coordenador.",
+      "A totalidade grupal surge apenas em grupos homogêneos.",
+      "A totalidade grupal dispensa comunicação entre os membros."
+    ],
+    "answer": "O grupo forma uma configuração com propriedades próprias, que organiza e é organizada pelos membros.",
+    "explanation": "A totalidade grupal é uma estrutura dinâmica: ultrapassa a soma de indivíduos e influencia as condutas, papéis e vínculos."
+  },
+  {
+    "chapter": 5,
+    "question": "Em termos de requisitos, o que diferencia um grupo terapêutico de um encontro casual?",
+    "options": [
+      "Um grupo terapêutico possui finalidade, enquadre, vínculos e uma tarefa compartilhada.",
+      "Um grupo terapêutico não tem regras, pois deve ser espontâneo.",
+      "Um encontro casual sempre produz mais insight do que terapia.",
+      "Um grupo terapêutico precisa reunir desconhecidos sem objetivo.",
+      "A diferença depende somente do número de participantes."
+    ],
+    "answer": "Um grupo terapêutico possui finalidade, enquadre, vínculos e uma tarefa compartilhada.",
+    "explanation": "O capítulo prepara a ideia de que grupos com finalidade terapêutica exigem organização, vínculo, tarefa e uma dinâmica que possa ser trabalhada."
+  },
+  {
+    "chapter": 5,
+    "question": "Qual é o papel da comunicação na constituição do grupo?",
+    "options": [
+      "Ela é uma condição básica para que os membros se influenciem e formem um campo comum.",
+      "Ela é secundária, pois o grupo se define apenas pela presença física.",
+      "Ela deve ser evitada para preservar a neutralidade.",
+      "Ela só acontece por fala explícita e nunca por gestos ou silêncios.",
+      "Ela é função exclusiva do coordenador."
+    ],
+    "answer": "Ela é uma condição básica para que os membros se influenciem e formem um campo comum.",
+    "explanation": "O grupo se constitui por interações e comunicações; estas podem ser verbais e não verbais e sustentam a formação do campo grupal."
+  },
+  {
+    "chapter": 6,
+    "question": "Qual é o princípio usado no capítulo 6 para diferenciar as modalidades grupais?",
+    "options": [
+      "Os fenômenos grupais básicos são semelhantes, mas a finalidade do grupo define a modalidade.",
+      "Cada modalidade possui fenômenos grupais totalmente exclusivos e incomparáveis.",
+      "A modalidade depende apenas da idade dos participantes.",
+      "A modalidade é definida pela quantidade de sessões por semana.",
+      "A modalidade é sempre determinada pelo diagnóstico mais grave."
+    ],
+    "answer": "Os fenômenos grupais básicos são semelhantes, mas a finalidade do grupo define a modalidade.",
+    "explanation": "O capítulo afirma que os fenômenos grupais aparecem nos diversos grupos, mas os objetivos e a tarefa organizam a modalidade específica."
+  },
+  {
+    "chapter": 6,
+    "question": "Como o capítulo 6 organiza amplamente as modalidades grupais?",
+    "options": [
+      "Em grupos operativos e grupos terapêuticos.",
+      "Em grupos familiares e grupos jurídicos.",
+      "Em grupos individuais e grupos coletivos.",
+      "Em grupos verbais e grupos silenciosos.",
+      "Em grupos orgânicos e grupos inorgânicos."
+    ],
+    "answer": "Em grupos operativos e grupos terapêuticos.",
+    "explanation": "A distinção central do capítulo é entre grupos operativos, voltados a uma tarefa, e grupos terapêuticos, voltados a objetivos de cuidado e mudança psíquica."
+  },
+  {
+    "chapter": 6,
+    "question": "O que caracteriza um grupo operativo?",
+    "options": [
+      "A centralidade de uma tarefa explícita que organiza a interação entre os participantes.",
+      "A ausência de qualquer objetivo consciente.",
+      "A exigência de interpretação psicanalítica profunda em todas as sessões.",
+      "A busca exclusiva de regressão emocional.",
+      "A proibição de aprendizagem e reflexão."
+    ],
+    "answer": "A centralidade de uma tarefa explícita que organiza a interação entre os participantes.",
+    "explanation": "Nos grupos operativos, o foco está na realização de uma tarefa, aprendizagem, reflexão, assistência ou funcionamento institucional, ainda que fenômenos inconscientes também estejam presentes."
+  },
+  {
+    "chapter": 6,
+    "question": "Qual alternativa é exemplo de grupo operativo segundo a lógica do capítulo 6?",
+    "options": [
+      "Grupo de ensino-aprendizagem voltado à formação ou reflexão de uma equipe.",
+      "Grupo analítico de longa duração com foco em insight profundo.",
+      "Grupo de pacientes neuróticos com finalidade exclusivamente psicanalítica.",
+      "Grupo sem tarefa e sem coordenação definida.",
+      "Grupo fechado dedicado apenas à interpretação transferencial."
+    ],
+    "answer": "Grupo de ensino-aprendizagem voltado à formação ou reflexão de uma equipe.",
+    "explanation": "Grupos de ensino, reflexão, treinamento e trabalho institucional são exemplos compatíveis com a categoria de grupos operativos."
+  },
+  {
+    "chapter": 6,
+    "question": "Qual é o foco dos grupos terapêuticos?",
+    "options": [
+      "Promover algum tipo de cuidado, alívio, mudança ou elaboração psíquica nos participantes.",
+      "Produzir apenas eficiência administrativa.",
+      "Transmitir informações sem considerar emoções.",
+      "Eliminar completamente a interação entre os membros.",
+      "Substituir qualquer vínculo por instruções técnicas."
+    ],
+    "answer": "Promover algum tipo de cuidado, alívio, mudança ou elaboração psíquica nos participantes.",
+    "explanation": "A finalidade terapêutica envolve transformação subjetiva, tratamento, suporte, insight ou manejo de sofrimento, dependendo do tipo de grupo."
+  },
+  {
+    "chapter": 6,
+    "question": "Dentro dos grupos terapêuticos, o que distingue uma grupoterapia analítica?",
+    "options": [
+      "O trabalho com processos inconscientes, vínculos, transferências, resistências e possibilidade de insight.",
+      "O uso exclusivo de palestras educativas.",
+      "A ausência de enquadre e de tarefa clínica.",
+      "A concentração apenas em exercícios corporais.",
+      "A substituição do terapeuta por liderança leiga."
+    ],
+    "answer": "O trabalho com processos inconscientes, vínculos, transferências, resistências e possibilidade de insight.",
+    "explanation": "A modalidade analítica se define pelo referencial psicanalítico e pelo trabalho sobre o campo inconsciente que emerge entre os membros e o terapeuta."
+  },
+  {
+    "chapter": 6,
+    "question": "Qual é a relação entre técnica grupal e formação do coordenador no capítulo 6?",
+    "options": [
+      "A prática grupal exige preparo compatível com a modalidade e seus objetivos.",
+      "Qualquer pessoa pode conduzir qualquer grupo sem formação.",
+      "A formação do coordenador é irrelevante porque o grupo se autorregula sempre.",
+      "Somente médicos podem coordenar qualquer tipo de grupo.",
+      "O coordenador deve evitar conhecer a finalidade do grupo."
+    ],
+    "answer": "A prática grupal exige preparo compatível com a modalidade e seus objetivos.",
+    "explanation": "O capítulo diferencia finalidades e técnicas; por isso, a condução requer formação e clareza sobre a modalidade utilizada."
+  },
+  {
+    "chapter": 6,
+    "question": "Por que o mesmo fenômeno grupal pode aparecer em modalidades diferentes?",
+    "options": [
+      "Porque ansiedades, papéis, defesas e identificações são elementos gerais da vida grupal.",
+      "Porque todos os grupos têm exatamente o mesmo contrato terapêutico.",
+      "Porque a modalidade elimina diferenças entre participantes.",
+      "Porque grupos operativos não têm afetos.",
+      "Porque grupos terapêuticos não têm tarefas."
+    ],
+    "answer": "Porque ansiedades, papéis, defesas e identificações são elementos gerais da vida grupal.",
+    "explanation": "O capítulo sustenta que fenômenos grupais são recorrentes, embora adquiram sentido diverso conforme finalidade, enquadre e técnica."
+  },
+  {
+    "chapter": 6,
+    "question": "Qual cuidado evita confusão entre grupo operativo e grupo terapêutico?",
+    "options": [
+      "Definir claramente a finalidade, o enquadre e o tipo de intervenção esperada.",
+      "Usar sempre a mesma técnica para todos os grupos.",
+      "Ignorar as expectativas dos participantes.",
+      "Eliminar a tarefa consciente do grupo.",
+      "Permitir que qualquer demanda mude a modalidade sem reflexão."
+    ],
+    "answer": "Definir claramente a finalidade, o enquadre e o tipo de intervenção esperada.",
+    "explanation": "A clareza de objetivo organiza a modalidade e orienta o coordenador sobre como intervir diante dos fenômenos grupais."
+  },
+  {
+    "chapter": 6,
+    "question": "O que o capítulo 6 sugere sobre a variedade de aplicações grupais?",
+    "options": [
+      "O campo de aplicação é amplo e abrange finalidades clínicas, educativas, institucionais e comunitárias.",
+      "A aplicação grupal é restrita à psicose em hospitais.",
+      "A técnica grupal só é válida para adultos neuróticos.",
+      "Grupos não podem ser usados em instituições.",
+      "Grupos educativos não pertencem ao campo das grupoterapias."
+    ],
+    "answer": "O campo de aplicação é amplo e abrange finalidades clínicas, educativas, institucionais e comunitárias.",
+    "explanation": "O capítulo mostra um leque amplo de atividades grupais, incluindo aplicações clínicas e não clínicas."
+  },
+  {
+    "chapter": 6,
+    "question": "Qual afirmação é mais adequada sobre grupos de autoajuda no contexto das modalidades grupais?",
+    "options": [
+      "São modalidades grupais com finalidade de apoio mútuo, embora não equivalham necessariamente à grupoterapia analítica.",
+      "São sempre idênticos a grupos analíticos de insight.",
+      "Não têm qualquer fenômeno grupal relevante.",
+      "Devem eliminar a troca entre participantes.",
+      "São definidos pela ausência total de objetivo."
+    ],
+    "answer": "São modalidades grupais com finalidade de apoio mútuo, embora não equivalham necessariamente à grupoterapia analítica.",
+    "explanation": "Grupos de autoajuda fazem parte do campo das modalidades grupais por sua finalidade de suporte, mas diferem de tratamentos analíticos conduzidos tecnicamente."
+  },
+  {
+    "chapter": 6,
+    "question": "Qual é o risco de aplicar uma técnica sem considerar a modalidade do grupo?",
+    "options": [
+      "Intervir de modo inadequado à finalidade e às necessidades daquele campo grupal.",
+      "Aumentar automaticamente a criatividade terapêutica.",
+      "Garantir neutralidade completa do coordenador.",
+      "Eliminar resistências sem trabalho clínico.",
+      "Transformar qualquer grupo em grupo fechado."
+    ],
+    "answer": "Intervir de modo inadequado à finalidade e às necessidades daquele campo grupal.",
+    "explanation": "A técnica precisa corresponder ao objetivo; uma intervenção válida em grupoterapia analítica pode ser inadequada em grupo operativo, e vice-versa."
+  },
+  {
+    "chapter": 9,
+    "question": "O que o capítulo 9 chama de campo grupal?",
+    "options": [
+      "Um campo dinâmico onde se cruzam necessidades, desejos, medos, defesas, papéis, identificações e transferências.",
+      "Um espaço físico neutro onde apenas se somam relatos individuais.",
+      "Um contrato administrativo de horários e honorários.",
+      "Uma técnica para impedir qualquer ansiedade.",
+      "Uma liderança fixa que substitui a participação dos membros."
+    ],
+    "answer": "Um campo dinâmico onde se cruzam necessidades, desejos, medos, defesas, papéis, identificações e transferências.",
+    "explanation": "O capítulo descreve o campo grupal como uma rede dinâmica e simultânea de fenômenos conscientes e inconscientes."
+  },
+  {
+    "chapter": 9,
+    "question": "Quais três eixos são apresentados como coluna-mestra dos processos inconscientes no campo grupal?",
+    "options": [
+      "Ansiedades, defesas e identificações.",
+      "Honorários, férias e número de sessões.",
+      "Idade, diagnóstico e profissão.",
+      "Silêncio, pontualidade e pagamento.",
+      "Liderança, votação e disciplina."
+    ],
+    "answer": "Ansiedades, defesas e identificações.",
+    "explanation": "O capítulo 9 organiza sua revisão em torno de ansiedades, mecanismos de defesa e identificações."
+  },
+  {
+    "chapter": 9,
+    "question": "A ansiedade de aniquilamento refere-se principalmente a qual temor?",
+    "options": [
+      "Medo de desintegração, destruição ou perda radical da existência psíquica.",
+      "Medo exclusivo de perder dinheiro.",
+      "Medo de escolher um líder democrático.",
+      "Medo de mudança de horário.",
+      "Medo de aprender conteúdos novos."
+    ],
+    "answer": "Medo de desintegração, destruição ou perda radical da existência psíquica.",
+    "explanation": "Esse tipo de ansiedade se relaciona a vivências primitivas de ameaça à integridade do self."
+  },
+  {
+    "chapter": 9,
+    "question": "A ansiedade de fusão ou despersonalização diz respeito a:",
+    "options": [
+      "Temor de perder limites próprios ao ser engolfado pelo outro ou pelo grupo.",
+      "Medo de separar-se de um objeto amado.",
+      "Culpa por transgredir regras morais adultas.",
+      "Desejo de ocupar a liderança formal.",
+      "Recusa consciente de pagar honorários."
+    ],
+    "answer": "Temor de perder limites próprios ao ser engolfado pelo outro ou pelo grupo.",
+    "explanation": "O capítulo descreve a ansiedade de fusão como ameaça de perder diferenciação e identidade própria no vínculo."
+  },
+  {
+    "chapter": 9,
+    "question": "A ansiedade de separação aparece quando predomina o medo de:",
+    "options": [
+      "Perder o objeto, o vínculo ou a proteção de que o sujeito depende.",
+      "Ser invadido por excesso de proximidade.",
+      "Executar tarefas administrativas.",
+      "Falar em público por falta de vocabulário.",
+      "Assumir o papel de observador técnico."
+    ],
+    "answer": "Perder o objeto, o vínculo ou a proteção de que o sujeito depende.",
+    "explanation": "Ela é contraparte da fusão: o sujeito teme a separação e a perda do suporte do objeto/vínculo."
+  },
+  {
+    "chapter": 9,
+    "question": "Qual é a função dos mecanismos de defesa no campo grupal?",
+    "options": [
+      "Proteger o ego contra ansiedades, embora possam distorcer a percepção e a comunicação.",
+      "Eliminar definitivamente conflitos inconscientes.",
+      "Garantir que todos tenham insight imediato.",
+      "Substituir a necessidade de enquadre.",
+      "Impedir qualquer identificação entre membros."
+    ],
+    "answer": "Proteger o ego contra ansiedades, embora possam distorcer a percepção e a comunicação.",
+    "explanation": "As defesas surgem para lidar com ansiedades, mas podem dificultar o trabalho terapêutico se ficarem rígidas."
+  },
+  {
+    "chapter": 9,
+    "question": "Qual alternativa melhor descreve a identificação projetiva no contexto grupal?",
+    "options": [
+      "Partes internas indesejadas são colocadas no outro, que pode ser pressionado a representá-las.",
+      "O sujeito copia conscientemente o estilo de fala do terapeuta.",
+      "O grupo decide por votação quem será coordenador.",
+      "Um membro aprende uma técnica por imitação pedagógica.",
+      "O terapeuta resume racionalmente a sessão."
+    ],
+    "answer": "Partes internas indesejadas são colocadas no outro, que pode ser pressionado a representá-las.",
+    "explanation": "A identificação projetiva envolve depositar aspectos internos em outro membro ou subgrupo, mobilizando respostas no campo grupal."
+  },
+  {
+    "chapter": 9,
+    "question": "Por que as identificações são importantes na grupoterapia?",
+    "options": [
+      "Porque estruturam vínculos, papéis e modos de reconhecer no outro aspectos próprios ou rejeitados.",
+      "Porque impedem qualquer vínculo transferencial.",
+      "Porque tornam todos os participantes iguais.",
+      "Porque substituem a comunicação verbal por diagnóstico.",
+      "Porque eliminam a necessidade de interpretação."
+    ],
+    "answer": "Porque estruturam vínculos, papéis e modos de reconhecer no outro aspectos próprios ou rejeitados.",
+    "explanation": "O capítulo lista diversas formas de identificação e mostra que elas sustentam relações, defesas, papéis e movimentos emocionais do grupo."
+  },
+  {
+    "chapter": 9,
+    "question": "Identificar-se com uma figura perdida está ligado principalmente a que processo?",
+    "options": [
+      "Processos depressivos e elaboração de perdas.",
+      "Formação de liderança democrática.",
+      "Resistência por mudança de horário.",
+      "Aumento de tarefas operativas.",
+      "Escolha de grupo aberto."
+    ],
+    "answer": "Processos depressivos e elaboração de perdas.",
+    "explanation": "O capítulo associa a identificação com a figura perdida à base de processos depressivos."
+  },
+  {
+    "chapter": 9,
+    "question": "O que o grupoterapeuta precisa discriminar diante da rapidez dos fenômenos do campo grupal?",
+    "options": [
+      "Os principais elementos dinâmicos que ocorrem simultaneamente, como ansiedades, defesas e identificações.",
+      "Apenas quem falou mais durante a sessão.",
+      "Somente o conteúdo manifesto de cada relato individual.",
+      "A ordem cronológica exata de todos os fatos externos.",
+      "A opinião majoritária sobre o tema discutido."
+    ],
+    "answer": "Os principais elementos dinâmicos que ocorrem simultaneamente, como ansiedades, defesas e identificações.",
+    "explanation": "Como os fenômenos grupais aparecem de forma simultânea e confusa, o terapeuta deve discriminar os elementos dinâmicos para intervir adequadamente."
+  },
+  {
+    "chapter": 9,
+    "question": "No campo grupal, a defesa de negação tende a funcionar como:",
+    "options": [
+      "Recusa de reconhecer uma realidade psíquica ou emocional dolorosa.",
+      "Aceitação plena de sentimentos inconscientes.",
+      "Critério de composição de grupos homogêneos.",
+      "Forma de liderança técnica.",
+      "Contrato explícito de sigilo."
+    ],
+    "answer": "Recusa de reconhecer uma realidade psíquica ou emocional dolorosa.",
+    "explanation": "A negação é uma defesa contra percepções intoleráveis; no grupo, pode manter temas fora da consciência coletiva."
+  },
+  {
+    "chapter": 9,
+    "question": "Qual alternativa expressa a visão do capítulo 9 sobre conflitos pessoais no grupo?",
+    "options": [
+      "Problemas individuais se entrelaçam com a tarefa comum e com fenômenos do campo grupal.",
+      "Cada paciente permanece isolado em sua própria dinâmica.",
+      "O terapeuta deve ignorar o vínculo entre membros.",
+      "O grupo impede o aparecimento de desejos e defesas.",
+      "A tarefa comum elimina as ansiedades individuais."
+    ],
+    "answer": "Problemas individuais se entrelaçam com a tarefa comum e com fenômenos do campo grupal.",
+    "explanation": "O capítulo parte da ideia de que a reunião dos pacientes e do terapeuta gera um campo em que conteúdos individuais e grupais se articulam."
+  },
+  {
+    "chapter": 10,
+    "question": "Segundo o capítulo 10, o que significa dizer que um grupo possui papéis?",
+    "options": [
+      "Que há posições complementares onde se condensam expectativas, necessidades e fantasias do grupo.",
+      "Que cada membro deve receber uma função administrativa fixa.",
+      "Que os participantes escolhem racionalmente personagens para representar.",
+      "Que só o terapeuta pode ocupar papel significativo.",
+      "Que papéis são sempre conscientes e voluntários."
+    ],
+    "answer": "Que há posições complementares onde se condensam expectativas, necessidades e fantasias do grupo.",
+    "explanation": "Os papéis emergem do inconsciente grupal e articulam expectativas dos membros e da fantasia básica comum."
+  },
+  {
+    "chapter": 10,
+    "question": "Qual é um indicador de boa evolução grupal em relação aos papéis?",
+    "options": [
+      "Os papéis deixam de ser fixos e estereotipados e tornam-se mais plásticos e intercambiáveis.",
+      "O bode expiatório permanece definitivamente no mesmo lugar.",
+      "O líder informal substitui o terapeuta.",
+      "O grupo elimina qualquer diferenciação entre membros.",
+      "Todos assumem papéis rígidos desde a primeira sessão."
+    ],
+    "answer": "Os papéis deixam de ser fixos e estereotipados e tornam-se mais plásticos e intercambiáveis.",
+    "explanation": "A plasticidade dos papéis indica reconhecimento, mudança e maior diferenciação de identidade."
+  },
+  {
+    "chapter": 10,
+    "question": "O papel de bode expiatório caracteriza-se por:",
+    "options": [
+      "Receber a depositação da “maldade” ou dos aspectos rejeitados do grupo.",
+      "Expressar de modo manifesto o que o grupo sente latentemente.",
+      "Captar ansiedades emergentes antes dos demais.",
+      "Zelar pela moral e costumes do grupo.",
+      "Impedir toda liderança formal."
+    ],
+    "answer": "Receber a depositação da “maldade” ou dos aspectos rejeitados do grupo.",
+    "explanation": "No bode expiatório, o grupo deposita aspectos maus ou rejeitados em um membro, podendo até expulsá-lo simbolicamente ou de fato."
+  },
+  {
+    "chapter": 10,
+    "question": "Na teoria sistêmica, o equivalente familiar do bode expiatório é frequentemente chamado de:",
+    "options": [
+      "Paciente identificado.",
+      "Co-terapeuta espontâneo.",
+      "Líder messiânico.",
+      "Observador neutro.",
+      "Porta-voz institucional."
+    ],
+    "answer": "Paciente identificado.",
+    "explanation": "O capítulo aproxima o bode expiatório grupal do paciente identificado nas dinâmicas familiares."
+  },
+  {
+    "chapter": 10,
+    "question": "Qual é a função do porta-voz?",
+    "options": [
+      "Manifestar de forma mais evidente aquilo que o grupo pensa ou sente de modo latente.",
+      "Sabotar sistematicamente a tarefa terapêutica.",
+      "Definir o enquadre e os honorários.",
+      "Assumir a neutralidade do terapeuta.",
+      "Garantir que não haja comunicação extraverbal."
+    ],
+    "answer": "Manifestar de forma mais evidente aquilo que o grupo pensa ou sente de modo latente.",
+    "explanation": "O porta-voz pode expressar por palavras, atos, silêncios ou dramatizações conteúdos que pertencem ao campo grupal."
+  },
+  {
+    "chapter": 10,
+    "question": "O papel de radar ou caixa de ressonância costuma aparecer em quem?",
+    "options": [
+      "Em membro mais regressivo, que capta precocemente ansiedades emergentes do grupo.",
+      "No participante que sempre ocupa liderança democrática.",
+      "No terapeuta quando define as regras do setting.",
+      "No membro responsável pelos pagamentos.",
+      "No observador externo sem participação afetiva."
+    ],
+    "answer": "Em membro mais regressivo, que capta precocemente ansiedades emergentes do grupo.",
+    "explanation": "O radar percebe sinais iniciais de ansiedade e pode expressá-los por somatizações, crises, abandono ou outras formas não simbolizadas."
+  },
+  {
+    "chapter": 10,
+    "question": "O instigador é aquele que:",
+    "options": [
+      "Provoca perturbações e intrigas que mobilizam papéis nos demais.",
+      "Silencia por inibição fóbica.",
+      "Mantém a regra do sigilo.",
+      "Representa a abstinência técnica.",
+      "Integra o grupo por meio de continência."
+    ],
+    "answer": "Provoca perturbações e intrigas que mobilizam papéis nos demais.",
+    "explanation": "O instigador dramatiza no campo externo configurações internas, provocando reações e distribuição de papéis."
+  },
+  {
+    "chapter": 10,
+    "question": "O papel de atuador pelos demais ocorre quando:",
+    "options": [
+      "Um membro executa desejos ou transgressões que o grupo delega e critica ao mesmo tempo.",
+      "Todos trabalham igualmente a mesma tarefa.",
+      "O terapeuta interpreta apenas conteúdos individuais.",
+      "O grupo escolhe um secretário para registrar sessões.",
+      "Um participante permanece em silêncio por vergonha."
+    ],
+    "answer": "Um membro executa desejos ou transgressões que o grupo delega e critica ao mesmo tempo.",
+    "explanation": "O grupo pode criticar o atuador, mas também estimulá-lo inconscientemente a realizar desejos proibidos em nome dos demais."
+  },
+  {
+    "chapter": 10,
+    "question": "Qual é a marca do papel de sabotador?",
+    "options": [
+      "Obstaculizar o andamento da tarefa grupal por recursos resistenciais.",
+      "Promover flexibilidade dos papéis.",
+      "Conter as ansiedades do grupo.",
+      "Formalizar as regras do enquadre.",
+      "Expressar construtivamente o latente do grupo."
+    ],
+    "answer": "Obstaculizar o andamento da tarefa grupal por recursos resistenciais.",
+    "explanation": "O sabotador tenta impedir o êxito da tarefa grupal, muitas vezes ligado a inveja e defesas narcisísticas."
+  },
+  {
+    "chapter": 10,
+    "question": "O papel de vestal refere-se à pessoa que:",
+    "options": [
+      "Zela rigidamente pela moral e pelos bons costumes, podendo bloquear a criatividade.",
+      "Capta ansiedades larvárias do campo.",
+      "Assume actings delegados pelo grupo.",
+      "Conduz tecnicamente a interpretação.",
+      "Funciona como paciente identificado."
+    ],
+    "answer": "Zela rigidamente pela moral e pelos bons costumes, podendo bloquear a criatividade.",
+    "explanation": "A vestal preserva uma moralidade rígida; em excesso, vira patrulhamento que obstrui movimentos criativos."
+  },
+  {
+    "chapter": 10,
+    "question": "Como o capítulo 10 trata a liderança?",
+    "options": [
+      "Como fenômeno que pode surgir no plano do terapeuta e também entre os membros do grupo.",
+      "Como função inexistente em grupos terapêuticos.",
+      "Como papel sempre patológico e a ser eliminado.",
+      "Como atributo exclusivamente administrativo.",
+      "Como substituto da interpretação analítica."
+    ],
+    "answer": "Como fenômeno que pode surgir no plano do terapeuta e também entre os membros do grupo.",
+    "explanation": "A liderança é compreendida como papel presente em diferentes planos, incluindo o coordenador e líderes emergentes do grupo."
+  },
+  {
+    "chapter": 10,
+    "question": "Nos supostos básicos de Bion, o grupo de dependência tende a buscar:",
+    "options": [
+      "Um líder idealizado que ofereça proteção e solução.",
+      "Um inimigo para lutar ou fugir.",
+      "Um par que gere esperança messiânica.",
+      "Um sabotador para impedir pagamentos.",
+      "Um observador para abolir o vínculo."
+    ],
+    "answer": "Um líder idealizado que ofereça proteção e solução.",
+    "explanation": "No suposto básico de dependência, o grupo se organiza em torno da expectativa de ser protegido e conduzido por um líder idealizado."
+  },
+  {
+    "chapter": 11,
+    "question": "Como o capítulo 11 define enquadre ou setting grupal?",
+    "options": [
+      "Como o conjunto de procedimentos, regras, atitudes e combinações que organizam e possibilitam o processo terapêutico.",
+      "Como o conteúdo emocional específico de cada fala.",
+      "Como a soma das interpretações feitas pelo terapeuta.",
+      "Como a liderança informal do participante mais ativo.",
+      "Como a resistência que impede mudanças no grupo."
+    ],
+    "answer": "Como o conjunto de procedimentos, regras, atitudes e combinações que organizam e possibilitam o processo terapêutico.",
+    "explanation": "O setting inclui local, horários, duração, número de sessões, honorários, composição do grupo e demais regras que sustentam o trabalho."
+  },
+  {
+    "chapter": 11,
+    "question": "Por que o setting não é apenas uma situação passiva?",
+    "options": [
+      "Porque funciona como cenário ativo da dinâmica grupal e sofre pressões constantes para ser desvirtuado.",
+      "Porque deve mudar sempre que um paciente solicita.",
+      "Porque substitui a necessidade de interpretação.",
+      "Porque impede qualquer expressão afetiva.",
+      "Porque elimina ansiedade do campo grupal."
+    ],
+    "answer": "Porque funciona como cenário ativo da dinâmica grupal e sofre pressões constantes para ser desvirtuado.",
+    "explanation": "Embora seja a regra do jogo, o setting participa ativamente da dinâmica e revela pressões, resistências e conflitos."
+  },
+  {
+    "chapter": 11,
+    "question": "Qual elemento NÃO faz parte da configuração típica de um setting grupal?",
+    "options": [
+      "A obrigação de todos os pacientes terem o mesmo sonho antes da sessão.",
+      "Definição de grupo aberto ou fechado.",
+      "Número de participantes.",
+      "Frequência e duração das sessões.",
+      "Possível participação de observador ou co-terapeuta."
+    ],
+    "answer": "A obrigação de todos os pacientes terem o mesmo sonho antes da sessão.",
+    "explanation": "O capítulo lista elementos como composição, frequência, duração, abertura/fechamento, observador e tratamentos simultâneos; sonhos obrigatórios não fazem parte do enquadre."
+  },
+  {
+    "chapter": 11,
+    "question": "O que diferencia grupo fechado de grupo aberto?",
+    "options": [
+      "No fechado, após composto, não entram novos membros; no aberto, novos membros podem ser admitidos quando houver vaga.",
+      "No fechado, não há sigilo; no aberto, não há terapeuta.",
+      "No fechado, todos ficam em silêncio; no aberto, todos falam ao mesmo tempo.",
+      "No fechado, não existem resistências; no aberto, não há enquadre.",
+      "No fechado, só há crianças; no aberto, só há adultos."
+    ],
+    "answer": "No fechado, após composto, não entram novos membros; no aberto, novos membros podem ser admitidos quando houver vaga.",
+    "explanation": "A distinção é estrutural e afeta a dinâmica de entrada, saída e continuidade do campo grupal."
+  },
+  {
+    "chapter": 11,
+    "question": "Quais regras técnicas psicanalíticas são preservadas na grupoterapia analítica segundo o capítulo?",
+    "options": [
+      "Livre associação, abstinência, neutralidade, atenção flutuante, amor à verdade e sigilo.",
+      "Votação, punição, recompensa, confissão obrigatória e hierarquia militar.",
+      "Pontualidade, silêncio absoluto, diagnóstico público e liderança rotativa.",
+      "Sugestão direta, aconselhamento moral, diretividade contínua e segredo do terapeuta.",
+      "Treinamento físico, controle alimentar, avaliação escolar e contrato empresarial."
+    ],
+    "answer": "Livre associação, abstinência, neutralidade, atenção flutuante, amor à verdade e sigilo.",
+    "explanation": "O capítulo retoma regras clássicas e acrescenta a importância do sigilo como condição de confiança e coesão grupal."
+  },
+  {
+    "chapter": 11,
+    "question": "Como a livre associação deve ser compreendida na atualidade, conforme o capítulo 11?",
+    "options": [
+      "Como direito de falar ou não falar e de encontrar elos entre o que se diz, pensa, sente e faz.",
+      "Como obrigação formal de falar sem pausa durante toda a sessão.",
+      "Como proibição de associar ideias entre membros.",
+      "Como tarefa exclusiva do terapeuta.",
+      "Como técnica que impede resistências."
+    ],
+    "answer": "Como direito de falar ou não falar e de encontrar elos entre o que se diz, pensa, sente e faz.",
+    "explanation": "O texto atualiza a regra: ela não é mera obrigação; deve favorecer liberdade, vínculo associativo e elaboração."
+  },
+  {
+    "chapter": 11,
+    "question": "O fenômeno de ressonância grupal ocorre quando:",
+    "options": [
+      "O relato de um participante repercute nos demais, mobilizando associações e afetos do campo grupal.",
+      "O grupo vota para decidir a interpretação correta.",
+      "O terapeuta encerra a sessão sem escutar os membros.",
+      "Um participante fala sem qualquer efeito nos outros.",
+      "O setting é abandonado deliberadamente."
+    ],
+    "answer": "O relato de um participante repercute nos demais, mobilizando associações e afetos do campo grupal.",
+    "explanation": "Na grupoterapia, a fala de um paciente pode ressoar nos outros, desencadeando cadeias associativas e afetivas coletivas."
+  },
+  {
+    "chapter": 11,
+    "question": "Qual é o sentido técnico da neutralidade no capítulo 11?",
+    "options": [
+      "Manter intercâmbio afetivo sem tomar partido nem comprometer os limites e a hierarquia do enquadre.",
+      "Tornar-se frio, enigmático e afetivamente ausente.",
+      "Escolher o participante que parece ter razão.",
+      "Evitar qualquer escuta emocional.",
+      "Atender todos os pedidos de gratificação externa."
+    ],
+    "answer": "Manter intercâmbio afetivo sem tomar partido nem comprometer os limites e a hierarquia do enquadre.",
+    "explanation": "O capítulo diferencia empatia de envolvimento comprometedor: o terapeuta pode estar afetivamente presente sem perder neutralidade."
+  },
+  {
+    "chapter": 11,
+    "question": "Qual é a finalidade da regra de abstinência?",
+    "options": [
+      "Evitar gratificações externas que substituam a compreensão do sentido das demandas.",
+      "Proibir qualquer vínculo social entre membros para sempre.",
+      "Obrigar o terapeuta a não interpretar.",
+      "Impedir os pacientes de falar sobre sentimentos.",
+      "Garantir que todos abandonem tratamentos individuais."
+    ],
+    "answer": "Evitar gratificações externas que substituam a compreensão do sentido das demandas.",
+    "explanation": "A regra orienta o terapeuta a entender o como, porquê e para quê dos pedidos, em vez de simplesmente satisfazê-los."
+  },
+  {
+    "chapter": 11,
+    "question": "Por que o sigilo é especialmente importante no grupo?",
+    "options": [
+      "Porque sustenta coesão, confiabilidade e segurança para compartilhar conteúdos pessoais.",
+      "Porque impede a formação de vínculos entre membros.",
+      "Porque substitui o enquadre e a técnica.",
+      "Porque autoriza o terapeuta a tomar partido.",
+      "Porque transforma grupo aberto em fechado."
+    ],
+    "answer": "Porque sustenta coesão, confiabilidade e segurança para compartilhar conteúdos pessoais.",
+    "explanation": "Sem sigilo, a confiança grupal se rompe; por isso ele é condição técnica e ética do setting."
+  },
+  {
+    "chapter": 11,
+    "question": "O amor à verdade, no capítulo 11, relaciona-se a:",
+    "options": [
+      "Busca de liberdade interna por meio do contato com verdades psíquicas e relacionais.",
+      "Obrigação de revelar fatos externos sem elaboração emocional.",
+      "Acúmulo de informações biográficas pelo terapeuta.",
+      "Punição de pacientes que usam defesas.",
+      "Substituição da interpretação por confissão."
+    ],
+    "answer": "Busca de liberdade interna por meio do contato com verdades psíquicas e relacionais.",
+    "explanation": "O texto liga liberdade interna e verdade, destacando a autenticidade do terapeuta como modelo de identificação."
+  },
+  {
+    "chapter": 11,
+    "question": "O que significa a função continente do setting?",
+    "options": [
+      "Sustentar e conter ansiedades, ajudando o grupo a passar de aglomerado a integração, pertencimento e pertinência.",
+      "Impedir a circulação de afetos fortes.",
+      "Aumentar a rigidez burocrática do grupo.",
+      "Substituir os participantes pelo terapeuta.",
+      "Eliminar todas as diferenças individuais."
+    ],
+    "answer": "Sustentar e conter ansiedades, ajudando o grupo a passar de aglomerado a integração, pertencimento e pertinência.",
+    "explanation": "Inspirado em Bion e Winnicott, o capítulo mostra que o setting e o terapeuta ajudam a organizar sensações e angústias dispersas, favorecendo integração."
+  },
+  {
+    "chapter": 12,
+    "question": "Como o capítulo 12 define resistência em termos gerais?",
+    "options": [
+      "Tudo que, nos atos e palavras do analisando, se opõe ao acesso ao inconsciente.",
+      "A capacidade de manter sigilo fora do grupo.",
+      "A disposição consciente para aceitar interpretações.",
+      "A regra que organiza horário e honorários.",
+      "A transferência positiva dirigida ao terapeuta."
+    ],
+    "answer": "Tudo que, nos atos e palavras do analisando, se opõe ao acesso ao inconsciente.",
+    "explanation": "O capítulo retoma a definição psicanalítica de resistência como oposição ao acesso ao inconsciente no decorrer do tratamento."
+  },
+  {
+    "chapter": 12,
+    "question": "Como a noção contemporânea de resistência amplia a visão freudiana inicial?",
+    "options": [
+      "Além de oposição ativa, ela expressa um modo de funcionamento do ego e de sobrevivência psíquica.",
+      "Ela passa a ser vista como fenômeno exclusivamente consciente.",
+      "Ela deixa de ter importância clínica.",
+      "Ela só aparece em grupos operativos.",
+      "Ela é sempre provocada pelo terapeuta."
+    ],
+    "answer": "Além de oposição ativa, ela expressa um modo de funcionamento do ego e de sobrevivência psíquica.",
+    "explanation": "O capítulo explica que a resistência não é apenas obstáculo; pode dramatizar recursos que o sujeito usou para sobreviver a angústias."
+  },
+  {
+    "chapter": 12,
+    "question": "Qual exemplo é manifestação resistencial comum em grupoterapia?",
+    "options": [
+      "Atrasos e faltas reiteradas.",
+      "Pontualidade constante acompanhada de elaboração.",
+      "Associação livre com aumento de insight.",
+      "Sigilo respeitado pelo grupo.",
+      "Papéis mais plásticos e intercambiáveis."
+    ],
+    "answer": "Atrasos e faltas reiteradas.",
+    "explanation": "O capítulo lista atrasos, faltas, alteração do setting, silêncios, prolixidade, intelectualização, actings e outros sinais como manifestações possíveis de resistência."
+  },
+  {
+    "chapter": 12,
+    "question": "Manter segredos em relação ao grupo pode funcionar como resistência porque:",
+    "options": [
+      "Impede que conteúdos relevantes circulem e sejam trabalhados no campo grupal.",
+      "Aumenta obrigatoriamente a autonomia terapêutica.",
+      "É sempre exigência técnica do sigilo.",
+      "Garante elaboração depressiva.",
+      "É a única forma de livre associação."
+    ],
+    "answer": "Impede que conteúdos relevantes circulem e sejam trabalhados no campo grupal.",
+    "explanation": "O sigilo protege o grupo em relação ao exterior; já segredos mantidos dentro do campo terapêutico podem bloquear comunicação e elaboração."
+  },
+  {
+    "chapter": 12,
+    "question": "Qual causa de resistência está associada ao temor de entrar em contato com um mundo interno destruído?",
+    "options": [
+      "Medo da depressão.",
+      "Medo da progressão.",
+      "Apego ao mundo simbiótico-narcisista.",
+      "Inveja excessiva.",
+      "Ilusão grupal."
+    ],
+    "answer": "Medo da depressão.",
+    "explanation": "No medo da depressão, o paciente teme confrontar destruição interna sem possibilidade de reparação."
+  },
+  {
+    "chapter": 12,
+    "question": "O medo da progressão como causa de resistência significa que:",
+    "options": [
+      "O avanço pode ser inconscientemente proibido por culpas e sentimentos de não merecimento.",
+      "O paciente tem medo apenas de mudar o horário.",
+      "O grupo recusa a entrada de novos membros.",
+      "O terapeuta elimina a regra de abstinência.",
+      "O sujeito progride rápido demais por excesso de insight."
+    ],
+    "answer": "O avanço pode ser inconscientemente proibido por culpas e sentimentos de não merecimento.",
+    "explanation": "O capítulo mostra que o progresso pode despertar culpa inconsciente, levando o paciente a resistir ao próprio crescimento."
+  },
+  {
+    "chapter": 12,
+    "question": "O paciente monopolizador tende a:",
+    "options": [
+      "Concentrar a atenção do grupo em si e dificultar a evolução compartilhada.",
+      "Permanecer silencioso e esquecido em todas as sessões.",
+      "Assumir apenas o papel de observador técnico.",
+      "Promover plasticidade dos papéis alheios.",
+      "Garantir que todos falem igualmente."
+    ],
+    "answer": "Concentrar a atenção do grupo em si e dificultar a evolução compartilhada.",
+    "explanation": "O monopolizador mantém uma relação centrada em si, frequentemente ligada a estrutura narcisística e dificuldade de compartilhar o espaço grupal."
+  },
+  {
+    "chapter": 12,
+    "question": "Qual atitude técnica é recomendada diante do paciente silencioso?",
+    "options": [
+      "Incluí-lo nas interpretações sem forçar ou coagir sua participação verbal.",
+      "Obrigá-lo a falar no início de toda sessão.",
+      "Ignorá-lo até que abandone o silêncio.",
+      "Expulsá-lo por falta de participação.",
+      "Interpretar seu silêncio sempre como hostilidade consciente."
+    ],
+    "answer": "Incluí-lo nas interpretações sem forçar ou coagir sua participação verbal.",
+    "explanation": "O capítulo recomenda discriminar causas do silêncio e incluir o paciente no campo interpretativo, sem coerção."
+  },
+  {
+    "chapter": 12,
+    "question": "No manejo técnico das resistências, qual é uma discriminação fundamental?",
+    "options": [
+      "Distinguir resistências obstrutivas daquelas que revelam modos de proteção e funcionamento.",
+      "Eliminar todas as resistências por confrontação imediata.",
+      "Tratar toda resistência como falta de caráter.",
+      "Substituir interpretação por punição.",
+      "Evitar reconhecer quem ou o que está resistindo."
+    ],
+    "answer": "Distinguir resistências obstrutivas daquelas que revelam modos de proteção e funcionamento.",
+    "explanation": "O manejo começa por compreender a função da resistência, e não apenas combatê-la."
+  },
+  {
+    "chapter": 12,
+    "question": "Qual pergunta sintetiza o trabalho do terapeuta ao assinalar uma resistência?",
+    "options": [
+      "O que está sendo resistido, por quem, como e para que.",
+      "Quem merece permanecer no grupo e quem deve sair.",
+      "Qual membro deve ser líder formal.",
+      "Quanto tempo falta para encerrar a sessão.",
+      "Qual diagnóstico deve substituir a escuta."
+    ],
+    "answer": "O que está sendo resistido, por quem, como e para que.",
+    "explanation": "O capítulo orienta o terapeuta a reconhecer a forma, a autoria, o alvo e a função da resistência no campo grupal."
+  },
+  {
+    "chapter": 13,
+    "question": "O que é contra-resistência segundo o capítulo 13?",
+    "options": [
+      "Quando as resistências do indivíduo ou do grupo mobilizam no terapeuta uma resposta análoga.",
+      "Quando o terapeuta interpreta corretamente a transferência.",
+      "Quando o grupo respeita o enquadre.",
+      "Quando o paciente fala livremente sem oposição.",
+      "Quando o terapeuta mantém atenção flutuante."
+    ],
+    "answer": "Quando as resistências do indivíduo ou do grupo mobilizam no terapeuta uma resposta análoga.",
+    "explanation": "O capítulo diferencia contra-resistência de resistência própria do terapeuta: na contra-resistência, o campo grupal mobiliza uma resposta resistencial no coordenador."
+  },
+  {
+    "chapter": 13,
+    "question": "Qual premissa sustenta a importância da contra-resistência?",
+    "options": [
+      "A terapia repousa no vínculo interacional em que terapeuta e pacientes trocam emoções.",
+      "A terapia é apenas descoberta de conflitos no paciente isolado.",
+      "O terapeuta é imune aos efeitos do grupo.",
+      "A técnica dispensa vínculo emocional.",
+      "O grupo funciona sem influência do coordenador."
+    ],
+    "answer": "A terapia repousa no vínculo interacional em que terapeuta e pacientes trocam emoções.",
+    "explanation": "O capítulo recusa uma visão centrada só no paciente e enfatiza o intercâmbio emocional entre terapeuta e grupo."
+  },
+  {
+    "chapter": 13,
+    "question": "No campo grupal, por que a contra-resistência é mais complexa?",
+    "options": [
+      "Porque o coordenador pode formar conluios com indivíduos, subgrupos ou com a totalidade grupal.",
+      "Porque todos os grupos têm exatamente dois membros.",
+      "Porque não existem papéis nem subgrupos.",
+      "Porque a resistência só aparece no terapeuta.",
+      "Porque o setting não sofre pressões."
+    ],
+    "answer": "Porque o coordenador pode formar conluios com indivíduos, subgrupos ou com a totalidade grupal.",
+    "explanation": "A multiplicidade de vínculos aumenta as possibilidades de alianças inconscientes e conluios resistenciais."
+  },
+  {
+    "chapter": 13,
+    "question": "Qual é um sinal de funcionamento resistencial entre terapeuta e grupo?",
+    "options": [
+      "Sucessivas e excessivas modificações do enquadre grupal.",
+      "Estabilidade adequada das combinações feitas.",
+      "Reconhecimento de progressos pequenos.",
+      "Interpretação integradora de conflitos.",
+      "Aumento da plasticidade dos papéis."
+    ],
+    "answer": "Sucessivas e excessivas modificações do enquadre grupal.",
+    "explanation": "Alterações excessivas do enquadre podem indicar conluio resistencial e fuga de ansiedades do campo."
+  },
+  {
+    "chapter": 13,
+    "question": "Outro sinal de conluio resistencial é:",
+    "options": [
+      "Estagnação dos objetivos apesar de aparente tranquilidade.",
+      "Conflitos trabalhados de modo interpretativo.",
+      "Maior liberdade interna dos participantes.",
+      "Reconhecimento de agressividade com possibilidade de reparação.",
+      "Abertura para críticas ao terapeuta."
+    ],
+    "answer": "Estagnação dos objetivos apesar de aparente tranquilidade.",
+    "explanation": "O grupo pode parecer bem, mas permanecer em um “faz-de-conta” que impede mudanças reais."
+  },
+  {
+    "chapter": 13,
+    "question": "Qual manifestação pode indicar resistência do grupoterapeuta?",
+    "options": [
+      "Interpretações intelectualizadas, belas, mas defensivas.",
+      "Tolerância a silêncios elaborativos.",
+      "Reconhecimento de sua responsabilidade.",
+      "Atenção a microssinais de progresso.",
+      "Continência da agressividade sem repressão."
+    ],
+    "answer": "Interpretações intelectualizadas, belas, mas defensivas.",
+    "explanation": "O capítulo lista interpretações intelectualizadas como possível modo de evitar contato emocional vivo."
+  },
+  {
+    "chapter": 13,
+    "question": "Quando o terapeuta abafa imediatamente agressividade ou erotismo no grupo, qual risco ocorre?",
+    "options": [
+      "Impedir que conteúdos úteis sejam verbalizados e elaborados.",
+      "Aumentar automaticamente o insight.",
+      "Favorecer reparações verdadeiras.",
+      "Garantir liberdade interna plena.",
+      "Eliminar todas as resistências futuras."
+    ],
+    "answer": "Impedir que conteúdos úteis sejam verbalizados e elaborados.",
+    "explanation": "A repressão prematura pode bloquear experiências necessárias de expressão, reconhecimento e reparação."
+  },
+  {
+    "chapter": 13,
+    "question": "Qual é o conluio resistencial mais comum descrito no capítulo?",
+    "options": [
+      "Acordo inconsciente para impedir manifestações que ameacem a paz e o bem-estar aparentes.",
+      "Acordo explícito para aprofundar verdades dolorosas.",
+      "Aliança para reconhecer críticas ao terapeuta.",
+      "Pacto para flexibilizar papéis rigidamente.",
+      "Combinação técnica para preservar sigilo."
+    ],
+    "answer": "Acordo inconsciente para impedir manifestações que ameacem a paz e o bem-estar aparentes.",
+    "explanation": "O capítulo destaca conluios que mantêm uma falsa harmonia, impedindo mudanças analíticas reais."
+  },
+  {
+    "chapter": 13,
+    "question": "Se o terapeuta não suporta agressão ou erotismo, o grupo tende a:",
+    "options": [
+      "Identificar-se com essa resistência e restringir a expressão desses conteúdos.",
+      "Tornar-se automaticamente mais criativo.",
+      "Eliminar a necessidade de interpretação.",
+      "Assumir livremente todos os conflitos.",
+      "Desenvolver insight sem intervenção."
+    ],
+    "answer": "Identificar-se com essa resistência e restringir a expressão desses conteúdos.",
+    "explanation": "O capítulo afirma que a resistência do terapeuta tende a ser tomada pelo grupo como modelo de identificação."
+  },
+  {
+    "chapter": 13,
+    "question": "Quais consequências podem ocorrer se o bloqueio contra-resistencial persistir?",
+    "options": [
+      "Escalada de mensagens codificadas, actings ou submissão aparente ao terapeuta.",
+      "Cura imediata de todos os participantes.",
+      "Desaparecimento dos fenômenos grupais.",
+      "Fim da necessidade de enquadre.",
+      "Transformação automática do grupo em operativo."
+    ],
+    "answer": "Escalada de mensagens codificadas, actings ou submissão aparente ao terapeuta.",
+    "explanation": "O capítulo apresenta três desfechos possíveis: intensificação das mensagens indiretas, actings ou conluio submetedor-submetidos."
+  }
+];
+
+const CHAPTER_NAMES = {
+  5: "Cap. 5 — Importância e conceituação de grupo",
+  6: "Cap. 6 — Modalidades grupais",
+  9: "Cap. 9 — Campo grupal, ansiedades, defesas e identificações",
+  10: "Cap. 10 — Papéis e lideranças",
+  11: "Cap. 11 — Enquadre/setting grupal",
+  12: "Cap. 12 — Resistência",
+  13: "Cap. 13 — Contra-resistência"
+};
+
+const state = {
+  selectedChapters: [5,6,9,10,11,12,13],
+  questions: [],
+  current: 0,
+  score: 0,
+  answered: false,
+  history: []
+};
+
+const $ = (id) => document.getElementById(id);
+
+function shuffle(arr) {
+  const copy = [...arr];
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy;
+}
+
+function sample(arr, n) {
+  return shuffle(arr).slice(0, Math.min(n, arr.length));
+}
+
+function buildChapterList() {
+  const box = $("chapterList");
+  box.innerHTML = "";
+  Object.keys(CHAPTER_NAMES).map(Number).forEach(ch => {
+    const count = QUESTION_BANK.filter(q => q.chapter === ch).length;
+    const label = document.createElement("label");
+    label.className = "chapter";
+    label.innerHTML = `
+      <input type="checkbox" value="${ch}" checked>
+      <span>${CHAPTER_NAMES[ch]} <span class="small">(${count} questões)</span></span>
+    `;
+    box.appendChild(label);
+  });
+}
+
+function getSelectedChapters() {
+  return [...document.querySelectorAll('#chapterList input[type="checkbox"]:checked')].map(i => Number(i.value));
+}
+
+function show(section) {
+  ["start","quiz","result"].forEach(id => $(id).classList.toggle("hidden", id !== section));
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function startQuiz(chapters=null) {
+  const selected = chapters || getSelectedChapters();
+  const pool = QUESTION_BANK.filter(q => selected.includes(q.chapter));
+  if (pool.length < 10) {
+    $("startMsg").textContent = "Selecione capítulos com pelo menos 10 questões disponíveis.";
+    return;
+  }
+  state.selectedChapters = selected;
+  state.questions = sample(pool, 10).map(q => {
+    const opts = shuffle(q.options);
+    return {...q, shuffledOptions: opts};
+  });
+  state.current = 0;
+  state.score = 0;
+  state.answered = false;
+  state.history = [];
+  $("score").textContent = "Acertos: 0";
+  show("quiz");
+  renderQuestion();
+}
+
+function renderQuestion() {
+  const q = state.questions[state.current];
+  state.answered = false;
+  $("counter").textContent = `Questão ${state.current + 1}/10`;
+  $("score").textContent = `Acertos: ${state.score}`;
+  $("chapterBadge").textContent = CHAPTER_NAMES[q.chapter];
+  $("bar").style.width = `${(state.current) / 10 * 100}%`;
+  $("question").textContent = q.question;
+  $("feedback").style.display = "none";
+  $("feedback").className = "feedback";
+  $("feedback").innerHTML = "";
+  $("nextBtn").classList.add("hidden");
+  const options = $("options");
+  options.innerHTML = "";
+  q.shuffledOptions.forEach((opt, index) => {
+    const btn = document.createElement("button");
+    btn.className = "opt";
+    btn.type = "button";
+    btn.innerHTML = `<span><strong>${String.fromCharCode(65 + index)})</strong> ${opt}</span>`;
+    btn.addEventListener("click", () => answer(opt, btn));
+    options.appendChild(btn);
+  });
+}
+
+function answer(selected, btn) {
+  if (state.answered) return;
+  state.answered = true;
+  const q = state.questions[state.current];
+  const correct = selected === q.answer;
+  if (correct) state.score++;
+
+  [...document.querySelectorAll(".opt")].forEach(b => {
+    b.disabled = true;
+    const text = b.textContent.replace(/^[A-E]\)\s*/, "").trim();
+    if (text === q.answer) b.classList.add("correct");
+  });
+  if (!correct) btn.classList.add("wrong");
+
+  const fb = $("feedback");
+  fb.style.display = "block";
+  fb.classList.add(correct ? "ok" : "bad");
+  fb.innerHTML = `
+    <strong>${correct ? "Correto!" : "Incorreto."}</strong>
+    <div><b>Resposta correta:</b> ${q.answer}</div>
+    <div style="margin-top:6px;"><b>Explicação:</b> ${q.explanation}</div>
+  `;
+  state.history.push({
+    chapter: q.chapter,
+    question: q.question,
+    selected,
+    correctAnswer: q.answer,
+    ok: correct,
+    explanation: q.explanation
+  });
+  $("score").textContent = `Acertos: ${state.score}`;
+  $("nextBtn").textContent = state.current === 9 ? "Ver resultado" : "Próxima questão";
+  $("nextBtn").classList.remove("hidden");
+  $("bar").style.width = `${(state.current + 1) / 10 * 100}%`;
+}
+
+function next() {
+  if (state.current < 9) {
+    state.current++;
+    renderQuestion();
+  } else {
+    renderResult();
+  }
+}
+
+function renderResult() {
+  $("finalScore").textContent = `${state.score}/10`;
+  let msg = "Continue estudando os capítulos selecionados e refaça o quiz para receber um novo sorteio.";
+  if (state.score >= 9) msg = "Excelente desempenho. Você demonstrou domínio forte dos capítulos sorteados.";
+  else if (state.score >= 7) msg = "Bom desempenho. Revise as explicações das questões que errou.";
+  else if (state.score >= 5) msg = "Resultado intermediário. Vale refazer por capítulo para localizar os pontos fracos.";
+  $("finalMsg").textContent = msg;
+
+  const review = $("review");
+  review.innerHTML = "";
+  state.history.forEach((h, idx) => {
+    const item = document.createElement("div");
+    item.className = "reviewItem";
+    item.innerHTML = `
+      <div><b>${idx + 1}. ${CHAPTER_NAMES[h.chapter]}</b> — ${h.ok ? "✅ Acertou" : "❌ Errou"}</div>
+      <div style="margin-top:6px;">${h.question}</div>
+      <div class="small" style="margin-top:6px;"><b>Sua resposta:</b> ${h.selected}</div>
+      <div class="small"><b>Correta:</b> ${h.correctAnswer}</div>
+      <div class="small"><b>Por quê:</b> ${h.explanation}</div>
+    `;
+    review.appendChild(item);
+  });
+  show("result");
+}
+
+buildChapterList();
+
+$("selectAll").addEventListener("click", () => {
+  document.querySelectorAll('#chapterList input').forEach(i => i.checked = true);
+  $("startMsg").textContent = "";
+});
+$("clearAll").addEventListener("click", () => {
+  document.querySelectorAll('#chapterList input').forEach(i => i.checked = false);
+  $("startMsg").textContent = "Selecione ao menos um capítulo antes de começar.";
+});
+$("startBtn").addEventListener("click", () => startQuiz());
+$("nextBtn").addEventListener("click", next);
+$("quitBtn").addEventListener("click", () => show("start"));
+$("restartSame").addEventListener("click", () => startQuiz(state.selectedChapters));
+$("restartChoose").addEventListener("click", () => show("start"));
+</script>
+</body>
+</html>
